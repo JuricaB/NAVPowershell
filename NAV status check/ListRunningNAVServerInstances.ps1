@@ -1,0 +1,1 @@
+﻿ Get-NAVServerInstance -ServerInstance ACWLGNAV2015 | Sort-Object ServerInstance |Where-Object -Property State -EQ -Value Running | Format-Table ServerInstance -AutoSize -GroupBy State

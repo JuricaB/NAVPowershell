@@ -1,0 +1,1 @@
+﻿Get-NAVServerInstance | Sort-Object State, ServerInstance | Format-Table ServerInstance, DisplayName, State, ServiceAccount -AutoSize -GroupBy State
