@@ -1,0 +1,188 @@
+OBJECT Codeunit 50502 PSM PsObject Collection
+{
+  OBJECT-PROPERTIES
+  {
+    Date=24/12/14;
+    Time=[ 2:48:22 p.m.];
+    Modified=Yes;
+    Version List=PSM 0.1;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      PsObjects@1100084000 : DotNet "'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.PSDataCollection`1";
+      CurrentObjectNr@1100084001 : Integer;
+      PSObject@1100084002 : DotNet "'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.PSObject";
+      IEnumerator@1100084003 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Collections.IEnumerator";
+      error_EmptyCollection@1100084004 : TextConst 'ENU=Empty PsObject Collection';
+      error_PsObjectNotAssigned@1100084005 : TextConst 'ENU=PSObject not assigned, NULL.';
+      error_wrongposition@1100084006 : TextConst 'ENU=Position invalid';
+
+    PROCEDURE SetObjectCollection@1100084000(VAR PsObjectCollection@1100084000 : DotNet "'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.PSDataCollection`1");
+    BEGIN
+      PsObjects       := PsObjectCollection;
+      IEnumerator     := PsObjectCollection.GetEnumerator;
+      CurrentObjectNr := 1;
+    END;
+
+    PROCEDURE GetPsObject@1100084009(VAR PSObjectReturn@1100084000 : DotNet "'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.PSObject");
+    BEGIN
+      PSObjectReturn := PSObject;
+    END;
+
+    PROCEDURE SetPsObject@1100084015(PSObjectInstance@1100084000 : DotNet "'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.PSObject");
+    BEGIN
+      PSObject := PSObjectInstance;
+    END;
+
+    LOCAL PROCEDURE FindPsObject@1100084006();
+    VAR
+      loop@1100084000 : Integer;
+    BEGIN
+      RESET;
+      FOR loop := 1 TO CurrentObjectNr DO
+        IEnumerator.MoveNext;
+
+      PSObject := IEnumerator.Current;
+    END;
+
+    PROCEDURE RESET@1100084012();
+    BEGIN
+      IEnumerator.Reset;
+    END;
+
+    PROCEDURE COUNT@1100084002() : Integer;
+    BEGIN
+      IF (ISNULL(PsObjects)) THEN
+        EXIT(0);
+
+      EXIT(PsObjects.Count);
+    END;
+
+    PROCEDURE ISEMPTY@1100084008() : Boolean;
+    BEGIN
+      EXIT(COUNT = 0);
+    END;
+
+    PROCEDURE NEXT@1100084004() : Integer;
+    BEGIN
+      IF (COUNT = 0) THEN
+        EXIT(0);
+
+      CurrentObjectNr += 1;
+      IF (CurrentObjectNr > COUNT) THEN
+        EXIT(0);
+
+      FindPsObject();
+      EXIT(COUNT - CurrentObjectNr + 1);
+    END;
+
+    PROCEDURE FINDFIRST@1100084005() : Boolean;
+    BEGIN
+      IF (COUNT = 0) THEN
+      //JBG START
+      //  ERROR(error_EmptyCollection);
+      EXIT(FALSE);
+      //JBG END
+
+      CurrentObjectNr := 1;
+      FindPsObject();
+      EXIT(TRUE);
+    END;
+
+    PROCEDURE SETPOSITION@1100084013(Position@1100084000 : Integer);
+    BEGIN
+      IF (Position > COUNT) OR (COUNT = 0) OR (Position < 0) THEN
+        ERROR(error_wrongposition);
+
+      CurrentObjectNr := Position;
+      FindPsObject();
+    END;
+
+    PROCEDURE GetProperties@1100084010(VAR PsPropertyInfoArray@1100084001 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Array");
+    VAR
+      PSMPsMemberInfoCollection@1100084000 : Codeunit 50503;
+    BEGIN
+      IF (ISNULL(PSObject)) THEN
+        ERROR(error_PsObjectNotAssigned);
+
+      PSMPsMemberInfoCollection.GetProperties(PSObject, PsPropertyInfoArray);
+    END;
+
+    PROCEDURE SetPropertyValue@1100084011(PropertyName@1100084000 : Text;VAR Value@1100084001 : Variant);
+    VAR
+      PSPropertyInfo@1100084002 : DotNet "'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.PSPropertyInfo";
+      PSMPsMemberInfoCollection@1100084003 : Codeunit 50503;
+    BEGIN
+      IF (ISNULL(PSObject)) THEN
+        ERROR(error_PsObjectNotAssigned);
+
+      //PSObject.Properties = predicate = can't be declared or used in NAV
+      PSMPsMemberInfoCollection.GetProperty(PSObject, PropertyName, PSPropertyInfo);
+
+      IF ISNULL(PSPropertyInfo) THEN
+        Value := ''
+      ELSE
+        IF PSPropertyInfo.IsGettable THEN
+          Value := PSPropertyInfo.Value
+        ELSE
+          Value := '';
+    END;
+
+    PROCEDURE GetPropertyValueText@1100084025(PropertyName@1100084000 : Text) : Text;
+    VAR
+      PSPropertyInfo@1100084001 : DotNet "'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.PSPropertyInfo";
+      tempVariant@1100084003 : Variant;
+    BEGIN
+      SetPropertyValue(PropertyName,tempVariant);
+      EXIT(FORMAT(tempVariant));
+    END;
+
+    PROCEDURE GetPropertyValueInteger@1100084001(PropertyName@1100084000 : Text) : Integer;
+    VAR
+      tempVariant@1100084001 : Variant;
+    BEGIN
+      SetPropertyValue(PropertyName,tempVariant);
+      EXIT(tempVariant);
+    END;
+
+    PROCEDURE GetPropertyValueBoolean@1100084003(PropertyName@1100084000 : Text) : Boolean;
+    VAR
+      tempVariant@1100084001 : Variant;
+      tempBool@1000 : Boolean;
+    BEGIN
+      SetPropertyValue(PropertyName,tempVariant);
+      EVALUATE(tempBool, FORMAT(tempVariant));
+      EXIT(tempBool);
+    END;
+
+    PROCEDURE GetPropertyValueDate@1100084007(PropertyName@1100084000 : Text) : Date;
+    VAR
+      tempVariant@1100084001 : Variant;
+    BEGIN
+      SetPropertyValue(PropertyName,tempVariant);
+      EXIT(tempVariant);
+    END;
+
+    EVENT PsObjects@1100084000::DataAdding@38(sender@1100084001 : Variant;e@1100084000 : DotNet "'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.DataAddingEventArgs");
+    BEGIN
+    END;
+
+    EVENT PsObjects@1100084000::DataAdded@39(sender@1100084001 : Variant;e@1100084000 : DotNet "'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.DataAddedEventArgs");
+    BEGIN
+    END;
+
+    EVENT PsObjects@1100084000::Completed@40(sender@1100084001 : Variant;e@1100084000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    BEGIN
+    END.
+  }
+}

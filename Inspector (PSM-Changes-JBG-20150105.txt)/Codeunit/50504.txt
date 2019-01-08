@@ -1,0 +1,177 @@
+OBJECT Codeunit 50504 PSM Example
+{
+  OBJECT-PROPERTIES
+  {
+    Date=12/12/14;
+    Time=10:02:25 a.m.;
+    Modified=Yes;
+    Version List=PSM 0.1;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+            GetNAVServerInstanceExampleWithWrapper
+          END;
+
+  }
+  CODE
+  {
+
+    LOCAL PROCEDURE GetServiceExample@1100084000();
+    VAR
+      PSMPowershellWrapper@1100084000 : Codeunit 50500;
+      PSMPsObjectCollection@1100084002 : Codeunit 50502;
+      PSObjectReturn@1100084001 : DotNet "'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.PSObject";
+      PSMSetup@1100084003 : Record 50500;
+    BEGIN
+      PSMSetup.GET;
+
+      WITH PSMPowershellWrapper DO BEGIN
+        OpenRunspace(PSMSetup.Servername,PSMSetup.Username,PSMSetup.Password);
+
+        AddCommand('get-service');
+        AddParameterWithValue('name','*NAV*');
+
+        InvokeCommands(PSMPsObjectCollection);
+
+        IF (PSMPsObjectCollection.FINDFIRST) THEN BEGIN
+          REPEAT
+            MESSAGE(PSMPsObjectCollection.GetPropertyValueText('Name') + '-' + PSMPsObjectCollection.GetPropertyValueText('Status'));
+          UNTIL PSMPsObjectCollection.NEXT < 1;
+        END;
+
+        CloseRunspace();
+
+      END;
+    END;
+
+    LOCAL PROCEDURE GetNAVServerInstanceExample@1100084005();
+    VAR
+      PSMPsObjectCollection@1100084002 : Codeunit 50502;
+      PSObjectReturn@1100084001 : DotNet "'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.PSObject";
+      PSMPowershellWrapper@1100084000 : Codeunit 50500;
+      PSMSetup@1100084003 : Record 50500;
+    BEGIN
+      PSMSetup.GET;
+
+      WITH PSMPowershellWrapper DO BEGIN
+        OpenRunspace(PSMSetup.Servername,PSMSetup.Username,PSMSetup.Password);
+
+        LoadModule('C:\Program Files\Microsoft Dynamics NAV\80\Service\NavAdminTool.ps1');
+
+        AddCommand('get-NAVServerInstance');
+        InvokeCommands(PSMPsObjectCollection);
+
+        IF (PSMPsObjectCollection.FINDFIRST) THEN REPEAT
+          MESSAGE(PSMPsObjectCollection.GetPropertyValueText('ServerInstance') + '-' + PSMPsObjectCollection.GetPropertyValueText('State'));
+        UNTIL PSMPsObjectCollection.NEXT < 1;
+
+        CloseRunspace();
+
+      END;
+    END;
+
+    LOCAL PROCEDURE GetNAVCompanyExample@1100084002();
+    VAR
+      PSMPsObjectCollection@1100084002 : Codeunit 50502;
+      PSObjectReturn@1100084001 : DotNet "'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.PSObject";
+      PSMPowershellWrapper@1100084000 : Codeunit 50500;
+      PSMSetup@1100084003 : Record 50500;
+    BEGIN
+      PSMSetup.GET;
+
+      WITH PSMPowershellWrapper DO BEGIN
+        OpenRunspace(PSMSetup.Servername,PSMSetup.Username,PSMSetup.Password);
+
+        LoadModule('C:\Program Files\Microsoft Dynamics NAV\80\Service\NavAdminTool.ps1');
+
+        AddCommand('get-NAVServerInstance');
+        AddCommand('get-NAVTenant');
+        AddCommand('get-NAVCompany');
+
+        InvokeCommands(PSMPsObjectCollection);
+
+        IF (PSMPsObjectCollection.FINDFIRST) THEN REPEAT
+          MESSAGE(PSMPsObjectCollection.GetPropertyValueText('CompanyName'));
+        UNTIL PSMPsObjectCollection.NEXT < 1;
+
+        CloseRunspace();
+
+      END;
+    END;
+
+    LOCAL PROCEDURE GetNAVCompanyExample2@1100084013();
+    VAR
+      PSMPsObjectCollection@1100084002 : Codeunit 50502;
+      PSObjectReturn@1100084001 : DotNet "'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.PSObject";
+      PSMPowershellWrapper@1100084000 : Codeunit 50500;
+      PSMSetup@1100084003 : Record 50500;
+    BEGIN
+      PSMSetup.GET;
+
+      WITH PSMPowershellWrapper DO BEGIN
+        OpenRunspace(PSMSetup.Servername,PSMSetup.Username,PSMSetup.Password);
+
+        LoadModule('C:\Program Files\Microsoft Dynamics NAV\80\Service\NavAdminTool.ps1');
+
+        AddScript('get-NAVServerInstance | get-NAVTenant | get-NAVCompany');
+        InvokeCommands(PSMPsObjectCollection);
+
+        IF (PSMPsObjectCollection.FINDFIRST) THEN REPEAT
+          MESSAGE(PSMPsObjectCollection.GetPropertyValueText('CompanyName'));
+        UNTIL PSMPsObjectCollection.NEXT < 1;
+
+        CloseRunspace();
+
+      END;
+    END;
+
+    LOCAL PROCEDURE GetNAVServerInstanceExampleWithWrapper@1100084001();
+    VAR
+      PSMPsObjectCollection@1100084002 : Codeunit 50502;
+      PSObjectReturn@1100084001 : DotNet "'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.PSObject";
+      PSMPowershellWrapper@1100084000 : Codeunit 50500;
+      PSONAVServerInstance@1100084003 : Codeunit 50600;
+      PSMSetup@1100084004 : Record 50500;
+    BEGIN
+      PSMSetup.GET;
+
+      WITH PSMPowershellWrapper DO BEGIN
+        OpenRunspace(PSMSetup.Servername,PSMSetup.Username,PSMSetup.Password);
+
+        LoadModule('C:\Program Files\Microsoft Dynamics NAV\80\Service\NavAdminTool.ps1');
+
+        AddCommand(PSONAVServerInstance.GetPsCommand);
+        InvokeCommands(PSMPsObjectCollection);
+
+        IF (PSMPsObjectCollection.FINDFIRST) THEN BEGIN
+          PSONAVServerInstance.SetPSMPsObjectCollection(PSMPsObjectCollection);
+          REPEAT
+            MESSAGE(PSONAVServerInstance.ServerInstance + '-' + PSONAVServerInstance.State);
+          UNTIL PSMPsObjectCollection.NEXT < 1;
+        END;
+
+        CloseRunspace();
+
+      END;
+    END;
+
+    LOCAL PROCEDURE MessageProperties@1100084004(VAR PSMPsObjectCollection@1100084000 : Codeunit 50502);
+    VAR
+      PsPropertyInfoArray@1100084001 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Array";
+      ArrayLoop@1100084002 : Integer;
+      PsPropertyInfo@1100084003 : DotNet "'System.Management.Automation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.System.Management.Automation.PSPropertyInfo";
+    BEGIN
+      PSMPsObjectCollection.GetProperties(PsPropertyInfoArray);
+
+      FOR ArrayLoop := 0 TO (PsPropertyInfoArray.Length -1) DO BEGIN
+        PsPropertyInfo := PsPropertyInfoArray.GetValue(ArrayLoop);
+
+        MESSAGE('Name : ' + PsPropertyInfo.Name + '\' + 'DataType : ' + PsPropertyInfo.TypeNameOfValue);
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
