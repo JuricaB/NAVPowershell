@@ -1,15 +1,17 @@
-﻿#todo - handle multiple builds by adding build to the full paths
-do{
-[String]$result = Read-Host "Set NAV version (71,80,90,100,110,130)" 
+﻿do{
+[String]$result = Read-Host "Set NAV version (71,80,90,100,110,130,140,150,160,170,180)" 
 }
-until(($result -eq '71') -or ($result -eq '80') -or ($result -eq '90') -or ($result -eq '100') -or ($result -eq '110') -or ($result -eq '130'))
+until(($result -eq '71') -or ($result -eq '80') -or ($result -eq '90') -or ($result -eq '100') -or ($result -eq '110') -or ($result -eq '130') `
+    -or ($result -eq '140') -or ($result -eq '150') -or ($result -eq '160') -or ($result -eq '170') -or ($result -eq '180'))
+
 Set-ExecutionPolicy RemoteSigned -force
-if ($result -eq '130')
+
+if (($result -eq '140') -or ($result -eq '150') -or ($result -eq '160') -or ($result -eq '170') -or ($result -eq '180')) #Business Central
     {
         [String]$Path1 = 'C:\Program Files\Microsoft Dynamics 365 Business Central\'
         [String]$Path2 = 'C:\Program Files (x86)\Microsoft Dynamics 365 Business Central\'
     }
-else
+else #Dynamics NAV
     {
         [String]$Path1 = 'C:\Program Files\Microsoft Dynamics NAV\'
         [String]$Path2 = 'C:\Program Files (x86)\Microsoft Dynamics NAV\'
