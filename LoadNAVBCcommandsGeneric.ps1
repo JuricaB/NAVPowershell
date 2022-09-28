@@ -1,12 +1,40 @@
-﻿do{
-[String]$result = Read-Host "Set NAV version (71,80,90,100,110,130,140,150,160,170,180)" 
+﻿#Set-ExecutionPolicy RemoteSigned -force
+
+$menu = @('Quit','71', '80', '90', '100', '110', '130', '140', '150','160', '170', '180', '190', '200', '210' )
+
+for($i=0;$i -lt $menu.Count;$i++)
+    {
+    '{0} - {1}' -f $i, $menu[$i]
+    }
+
+[string]$Choice = ''
+while ([string]::IsNullOrEmpty($Choice))
+    {
+    Write-Host
+    $Choice = Read-Host 'Please choose version by number (0 to quit)'    
+    if ($Choice -notin 0..($menu.Count - 1))  
+        {
+        [console]::Beep(1000, 300)
+        Write-Warning ''
+        Write-Warning ('    Your choice [ {0} ] is not valid.' -f $Choice)
+        Write-Warning ('        The valid choices are 0 thru {0}.' -f ($menu.Count - 1) )
+        Write-Warning '        Please try again ...'
+        pause
+
+        $Choice = ''
+        }
+    }
+
+[String]$result = $menu[$Choice]
+
+Write-Host 'You chose: ' $result
+
+if ($Choice -eq 0){
+    Write-Host 'Never give up! Never surrender!'
+    exit
 }
-until(($result -eq '71') -or ($result -eq '80') -or ($result -eq '90') -or ($result -eq '100') -or ($result -eq '110') -or ($result -eq '130') `
-    -or ($result -eq '140') -or ($result -eq '150') -or ($result -eq '160') -or ($result -eq '170') -or ($result -eq '180'))
 
-Set-ExecutionPolicy RemoteSigned -force
-
-if (($result -eq '140') -or ($result -eq '150') -or ($result -eq '160') -or ($result -eq '170') -or ($result -eq '180')) #Business Central
+if (($Choice -gt 5)) #Business Central
     {
         [String]$Path1 = 'C:\Program Files\Microsoft Dynamics 365 Business Central\'
         [String]$Path2 = 'C:\Program Files (x86)\Microsoft Dynamics 365 Business Central\'
@@ -29,32 +57,32 @@ $FullPath4 = $Path2 + $result + $FollowPath4 #finsql
 
 if([System.IO.File]::Exists($FullPath1))
     {
-        Write-Host 'Importing module: ' $FullPath1    
+        Write-Host 'Importing module - admin tools : ' $FullPath1    
         Import-Module $FullPath1
     }
 else
     {
-        Write-Host 'File not found: ' $FullPath1
+        Write-Host 'File not found - admin tools: ' $FullPath1
     }
 
 if([System.IO.File]::Exists($FullPath2))
     {
-        Write-Host 'Importing module: ' $FullPath2    
+        Write-Host 'Importing module - NAVModelTools: ' $FullPath2    
         Import-Module $FullPath2
     }
 else
     {
-        Write-Host 'File not found: ' $FullPath2
+        Write-Host 'File not found - NAVModelTools: ' $FullPath2
     }
 
 if([System.IO.File]::Exists($FullPath3))
     {
-        Write-Host 'Importing module: ' $FullPath3    
+        Write-Host 'Importing module - NAV IDE: ' $FullPath3    
         Import-Module $FullPath3
     }
 else
     {
-        Write-Host 'File not found: ' $FullPath3
+        Write-Host 'File not found - NAV IDE : ' $FullPath3
     }
 
 if([System.IO.File]::Exists($FullPath4))
@@ -64,5 +92,5 @@ if([System.IO.File]::Exists($FullPath4))
     }
 else
     {
-        Write-Host 'File not found: ' $FullPath4
+        Write-Host 'File not found - finsql.exe: ' $FullPath4
     }
