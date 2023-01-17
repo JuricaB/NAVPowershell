@@ -86,5 +86,6 @@ if (Test-Path -Path $PlatformZip) {
 $TargetPath = $AppFolder + 'Modules\System Application\'
 Expand-Archive $PlatformZip -DestinationPath $TargetPath -Force
 
-Write-Host "Dev complete! Run Prism on $TargetFile"
+Write-Host "Workspace setup complete!"
 Write-Host "For complete coverage, open System.app package from Prism once, then tick Search Package Cache in Prism control panel before opening workspace"
+Write-Host "Workspace file: $TargetFile"

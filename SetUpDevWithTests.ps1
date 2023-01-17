@@ -101,5 +101,6 @@ $WorkspaceFolders | ConvertTo-Json | Set-Content $WorkspaceConfigsPath -NoNewlin
 #recursively delete Code Coverage folder and files therein - they duplicate in Base App
 Remove-Item -Path "C:\ProgramData\BcContainerHelper\Extensions\Original-21.3.51409.51813-NZ-al\Modules\Test\Test Runner\src\CodeCoverage\" -Recurse
 
-Write-Host "Dev complete! Run Prism on $TargetFile"
+Write-Host "Workspace setup complete!"
 Write-Host "For complete coverage, open System.app package from Prism once, then tick Search Package Cache in Prism control panel before opening workspace"
+Write-Host "Workspace file: $TargetFile"
