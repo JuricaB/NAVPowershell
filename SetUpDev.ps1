@@ -1,4 +1,10 @@
-﻿Write-Host "Setting up AL development workspace"
+﻿### Extracts the source code from the container saved to BCArtifacts.Cache folder into C:\ProgramData\BcContainerHelper\Extensions\Original folder, 
+### and sets up workspace for AL Prism which includes Base App and  System App
+
+### must have docker and BCContainerHelper installed
+
+
+Write-Host "Setting up AL development workspace"
 Write-Host "Getting BC version from docker container..."
 $allcontainers = @(docker container ls --format "{{.Names}}")
 
@@ -81,3 +87,4 @@ $TargetPath = $AppFolder + 'Modules\System Application\'
 Expand-Archive $PlatformZip -DestinationPath $TargetPath -Force
 
 Write-Host "Dev complete! Run Prism on $TargetFile"
+Write-Host "For complete coverage, open System.app package from Prism once, then tick Search Package Cache in Prism control panel before opening workspace"

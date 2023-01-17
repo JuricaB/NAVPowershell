@@ -69,6 +69,7 @@ Write-Host 'Artifact URL: ' + $artifactUrl
 
 New-BcContainer `
     -accept_eula `
+    -shortcuts None `
     -containerName $containerName `
     -credential $credential `
     -auth $auth `
