@@ -67,17 +67,17 @@ if (Test-Path -Path $AppFolder) {
     exit
 }
 $SourceFile = $AppFolder + 'SystemBaseAndTests.code-workspace'
-$TargetFile = $AppFolder + 'SystemAppsBaseAndTests.code-workspace'
+$TargetFile = $AppFolder + 'SystemAppsAndBase.code-workspace'
 
 if (Test-Path -Path $TargetFile) {
     Write-Host "AL Development workspace already configured: $TargetFile"
     exit
 }
-
+#set up SystemAddAndBase.code-workspace file
 Copy-Item $SourceFile -Destination $TargetFile
 
 #Open JSON file to add folder-start
-$WorkspaceConfigsPath = $AppFolder + 'SystemAppsBaseAndTests.code-workspace'
+$WorkspaceConfigsPath = $TargetFile
 $WorkspaceFolders = Get-Content $WorkspaceConfigsPath -raw | ConvertFrom-Json
 [System.Collections.ArrayList]$WorkspaceFolder = $WorkspaceFolders.folders
 #Open JSON file to add folder-end
@@ -87,11 +87,7 @@ $Version = $Version.Replace("-NZ", '')
 
 $SourceFolder = 'C:\bcartifacts.cache\sandbox\' + $Version + '\nz\Applications.NZ'
 
-UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter 'Tests' 
-UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter 'Library'
 UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter 'System Application'
-UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter 'Any'
-UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter 'Permissions Mock'
 
 #unzip platform files - format of source folder is different
 $FilterText = 'APIV1'
@@ -105,11 +101,46 @@ UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder 
 $WorkspaceFolders.folders = $WorkspaceFolder;
 $WorkspaceFolders | ConvertTo-Json | Set-Content $WorkspaceConfigsPath -NoNewline
 # finalize JSON file - end
+Write-Host "Workspace file without tests: $TargetFile" -ForegroundColor Green
 
-$DuplicatePath = "C:\ProgramData\BcContainerHelper\Extensions\Original-21.4.52563.52989-NZ-al\Modules\Test\System Application Test Library\"
+#set up SystemAppsBaseAndTests.code-workspace file
+$SourceFile = $AppFolder + 'SystemAppsAndBase.code-workspace'
+$TargetFile = $AppFolder + 'SystemAppsBaseAndTests.code-workspace'
+
+Copy-Item $SourceFile -Destination $TargetFile
+
+#Open JSON file to add folder-start
+$WorkspaceConfigsPath = $TargetFile
+$WorkspaceFolders = Get-Content $WorkspaceConfigsPath -raw | ConvertFrom-Json
+[System.Collections.ArrayList]$WorkspaceFolder = $WorkspaceFolders.folders
+#Open JSON file to add folder-end
+
+#unzip the NZ-specific files
+$Version = $Version.Replace("-NZ", '')
+
+$SourceFolder = 'C:\bcartifacts.cache\sandbox\' + $Version + '\nz\Applications.NZ'
+
+UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter 'Tests' 
+UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter 'Library'
+UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter 'Any'
+UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter 'Permissions Mock'
+
+# finalize JSON file - begin
+$WorkspaceFolders.folders = $WorkspaceFolder;
+$WorkspaceFolders | ConvertTo-Json | Set-Content $WorkspaceConfigsPath -NoNewline
+# finalize JSON file - end
+
+$DuplicatePath = "C:\ProgramData\BcContainerHelper\Extensions\Original-21.4.52563.52989-NZ-al\Modules\System Application\System Application Test Library"
 if (Test-Path -Path $DuplicatePath) {
     Remove-Item -Path $DuplicatePath -Recurse
 }
-Write-Host "Workspace setup complete!"
-Write-Host "For complete coverage, open System.app package from Prism once, then tick Search Package Cache in Prism control panel before opening workspace"
-Write-Host "Workspace file: $TargetFile" -ForegroundColor Green
+$DuplicatePath = "C:\ProgramData\BcContainerHelper\Extensions\Original-21.4.52563.52989-NZ-al\Modules\Tests\System Application Test Library"
+if (Test-Path -Path $DuplicatePath) {
+    Remove-Item -Path $DuplicatePath -Recurse
+}
+Write-Host "Workspace file including tests: $TargetFile" -ForegroundColor Green
+
+Write-Host "Workspace files setup complete! To achieve complete coverage:"
+Write-Host "1. Download symbols from the container in VS Code" -ForegroundColor Green
+Write-Host "2. Open downloaded System.app and Application.app symbol packages from Prism once" -ForegroundColor Green
+Write-Host "3. Tick Search Package Cache in Prism control panel before opening workspace" -ForegroundColor Green
