@@ -29,7 +29,6 @@ if($ContainerName -eq "") {
  Write-Host "Docker Client Version is $dockerClientVersion"
  Write-Host "Docker Server Version is $dockerServerVersion"
 
-$ImageName = 'alworkspace'
 $allImages = @(docker images --format "{{.Repository}}:{{.Tag}}")
 #Write-Host $allImages
 
@@ -68,13 +67,19 @@ $securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
 $credential = New-Object pscredential 'admin', $securePassword
 $auth = 'UserPassword'
 
+Write-Host 'Select license (MUST use BCLICENSE file for v22 or later):'
 $DefDir = 'C:\NAV\Other\'
+
+if ((Test-Path -Path $DefDir) -eq 0){
+    $DefDir = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::UserProfile) 
+    $DefDir = $DefDir + '\NAV\Other\'
+}
 if ((Test-Path -Path $DefDir) -eq 0){
     $DefDir = [Environment]::GetFolderPath('Desktop')
 }
 $FileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{ 
     InitialDirectory = $DefDir
-    Filter = 'License (*.flf)|*.flf'
+    Filter = 'License (*.flf)|*.flf|BC License file (*.bclicense)|*.bclicense'
 }
 $null = $FileBrowser.ShowDialog()
 

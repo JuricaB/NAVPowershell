@@ -97,6 +97,10 @@ $FilterText = 'APIV2'
 $SourceFolder = 'C:\bcartifacts.cache\sandbox\' + $Version + '\platform\Applications\' + $FilterText + '\Source'
 UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter $FilterText 
 
+$FilterText = 'Master_Data_Management'
+$SourceFolder = 'C:\bcartifacts.cache\sandbox\' + $Version + '\platform\Applications\' + $FilterText + '\Source'
+UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter $FilterText 
+
 # finalize JSON file - begin
 $WorkspaceFolders.folders = $WorkspaceFolder;
 $WorkspaceFolders | ConvertTo-Json | Set-Content $WorkspaceConfigsPath -NoNewline

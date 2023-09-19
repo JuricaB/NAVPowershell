@@ -1,4 +1,7 @@
-﻿# get SourcePath - exit if blank
+﻿#Change country code here if you need different one
+$Country = "nz"
+
+# get SourcePath - exit if blank
 $ContainerName = Read-Host "`n Container name, or ENTER to exit (same name will be used for ADMIN password) "    
 
 if($ContainerName -eq "") {
@@ -7,11 +10,11 @@ if($ContainerName -eq "") {
 }
 
 do {
-$ContainerType = Read-Host "`n Sandbox (S) or Onprem (O)"    
+$ContainerSelection = Read-Host "`n Sandbox (S) or Onprem (O) or Preview (P)"    
 }
-until (($ContainerType -eq "S") -or ($ContainerType -eq "O"))
+until (($ContainerSelection -eq "S") -or ($ContainerSelection -eq "O") -or ($ContainerSelection -eq "P"))
 
-if (($ContainerType -eq "S")){
+if (($ContainerSelection -eq "S") -or ($ContainerSelection -eq "P")){
 $ContainerType = "Sandbox"
 } else {
 $ContainerType = "OnPrem"
@@ -29,19 +32,31 @@ else
 $Select = 'Closest'
 }
 
-Write-Host 'Select license:'
-$DefDir = 'C:\NAV\Other\'
+Write-Host 'Select license (MUST use BCLICENSE file for v22 or later):'
+#default to OneDrive NAVLauncher folder
+$DefDir = [System.Environment]::GetEnvironmentVariable('OneDriveCommercial')
+$DefDir = $DefDir + '\NAV Launcher\NAV\Other'
 
+#fall back to NAVLauncher folder on C disk
+if ((Test-Path -Path $DefDir) -eq 0){
+$DefDir = 'C:\NAV\Other\'
+}
+
+#fall back to NAVLauncher folder in user profile
 if ((Test-Path -Path $DefDir) -eq 0){
     $DefDir = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::UserProfile) 
     $DefDir = $DefDir + '\NAV\Other\'
 }
+
+#fall back to Desktop (e.g. user needs to figure out where the license is!)
 if ((Test-Path -Path $DefDir) -eq 0){
-    $DefDir = [Environment]::GetFolderPath('Desktop')
+    $DefDir = [System.Environment]::GetFolderPath('Desktop')
 }
+
+#File open dialog, defaults to BC License and allows FLF
 $FileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{ 
     InitialDirectory = $DefDir
-    Filter = 'License (*.flf)|*.flf'
+    Filter = 'BC License file (*.bclicense)|*.bclicense|License (*.flf)|*.flf'
 }
 $null = $FileBrowser.ShowDialog()
 
@@ -50,9 +65,7 @@ if ((Test-Path -Path $LicenseFile -PathType Leaf) -eq 0){
     Write-Host "You must select a license - this is not valid" 
     EXIT
 }
-Write-Host 'License selected:' + $licenseFile
-
-$Country = "nz"
+Write-Host 'License selected: ' $licenseFile
 
 #Set password for ADMIN user to be same as container name
 $password = $containerName
@@ -60,12 +73,22 @@ $securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
 $credential = New-Object pscredential 'admin', $securePassword
 $auth = 'UserPassword'
 if ($Version -eq ""){    
-    $artifactUrl = Get-BcArtifactUrl -type $ContainerType -country $Country -select $Select    
+    if ($ContainerSelection -eq "P") {    
+        $artifactUrl = Get-BcArtifactUrl -country $Country -storageAccount 'BCPublicPreview'
+    }
+    else{
+        $artifactUrl = Get-BcArtifactUrl -type $ContainerType -country $Country -select $Select    
+    }
 }
 else {
-    $artifactUrl = Get-BcArtifactUrl -type $ContainerType -country $Country -select $Select -version $Version
+    if ($ContainerSelection -eq "P") {    
+        $artifactUrl = Get-BcArtifactUrl -country $Country -version $Version -storageAccount 'BCPublicPreview'
+    }
+    else{
+        $artifactUrl = Get-BcArtifactUrl -type $ContainerType -country $Country -select $Select -version $Version
+    }
 }
-Write-Host 'Artifact URL: ' + $artifactUrl
+Write-Host 'Artifact URL: ' $artifactUrl
 
 New-BcContainer `
     -accept_eula `
@@ -82,4 +105,4 @@ New-BcContainer `
     -vsixFile (Get-LatestAlLanguageExtensionUrl) `
     -updateHosts `
     -includeTestToolkit #'
-    #-includeCSide
+    #-includeCSide #only for BC14 or older

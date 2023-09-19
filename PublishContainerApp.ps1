@@ -1,3 +1,3 @@
-﻿Publish-NavContainerApp -appfile "C:\Temp\Apps\Theta Systems Limited_Common_1.2.0.1.app" -skipVerification -containerName NZBN
-
+﻿#Publish-NavContainerApp -appfile "C:\AL\erp-ext-root\MAIN\Theta Systems Limited_Integration Hub_20.1.0.23.app" -skipVerification -containerName NT14
+Unpublish-NavContainerApp -name "Integration Hub" -containerName NT14 -version 20.1.0.23
 
