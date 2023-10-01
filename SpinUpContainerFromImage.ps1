@@ -61,25 +61,31 @@ while ([string]::IsNullOrEmpty($Choice))
 'You chose {0}' -f $allImages[$Choice - 1]
 
 
-#Set password for ADMIN user to be same as container name
-$password = $containerName
-$securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
-$credential = New-Object pscredential 'admin', $securePassword
-$auth = 'UserPassword'
-
 Write-Host 'Select license (MUST use BCLICENSE file for v22 or later):'
-$DefDir = 'C:\NAV\Other\'
+#default to OneDrive NAVLauncher folder
+$DefDir = [System.Environment]::GetEnvironmentVariable('OneDriveCommercial')
+$DefDir = $DefDir + '\NAV Launcher\NAV\Other'
 
+#fall back to NAVLauncher folder on C disk
+if ((Test-Path -Path $DefDir) -eq 0){
+$DefDir = 'C:\NAV\Other\'
+}
+
+#fall back to NAVLauncher folder in user profile
 if ((Test-Path -Path $DefDir) -eq 0){
     $DefDir = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::UserProfile) 
     $DefDir = $DefDir + '\NAV\Other\'
 }
+
+#fall back to Desktop (e.g. user needs to figure out where the license is!)
 if ((Test-Path -Path $DefDir) -eq 0){
-    $DefDir = [Environment]::GetFolderPath('Desktop')
+    $DefDir = [System.Environment]::GetFolderPath('Desktop')
 }
+
+#File open dialog, defaults to BC License and allows FLF
 $FileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{ 
     InitialDirectory = $DefDir
-    Filter = 'License (*.flf)|*.flf|BC License file (*.bclicense)|*.bclicense'
+    Filter = 'BC License file (*.bclicense)|*.bclicense|License (*.flf)|*.flf'
 }
 $null = $FileBrowser.ShowDialog()
 
@@ -88,13 +94,20 @@ if ((Test-Path -Path $LicenseFile -PathType Leaf) -eq 0){
     Write-Host "You must select a license - this is not valid" 
     EXIT
 }
+Write-Host 'License selected: ' $licenseFile
 
+#Set password for ADMIN user to be same as container name
+$password = $containerName
+$securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
+$credential = New-Object pscredential 'admin', $securePassword
+$auth = 'UserPassword'
 New-BcContainer `
     -accept_eula `
+    -shortcuts None `
     -containerName $containerName `
-    -isolation Process `
     -credential $credential `
     -auth $auth `
+    -isolation process `
     -imageName $allImages[$Choice - 1] `
     -assignPremiumPlan `
     -licenseFile $licenseFile `
