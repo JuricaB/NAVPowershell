@@ -1,4 +1,6 @@
-﻿###
+﻿### THIS IS OBSOLETE! URL below no longer exists
+
+###
 ##BEFORE STARTING RUN IE at least once - if Internet Options pops up, select Recommended
 ###
 
