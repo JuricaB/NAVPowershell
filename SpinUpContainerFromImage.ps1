@@ -103,7 +103,7 @@ $credential = New-Object pscredential 'admin', $securePassword
 $auth = 'UserPassword'
 New-BcContainer `
     -accept_eula `
-    -shortcuts None `
+    -shortcuts Desktop `
     -containerName $containerName `
     -credential $credential `
     -auth $auth `
@@ -111,7 +111,7 @@ New-BcContainer `
     -imageName $allImages[$Choice - 1] `
     -assignPremiumPlan `
     -licenseFile $licenseFile `
+    -updateHosts `
     -includeAL `
     -vsixFile (Get-LatestAlLanguageExtensionUrl) `
-    -updateHosts `
     -includeTestToolkit
