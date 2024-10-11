@@ -1,8 +1,30 @@
 ﻿### Extracts the source code from the container saved to BCArtifacts.Cache folder into C:\ProgramData\BcContainerHelper\Extensions\Original folder, 
-### and sets up workspace for AL Prism which includes Base App and  System App
+### and sets up workspace for AL Prism which includes Base App and System App
 
 ### must have docker and BCContainerHelper installed
 
+function UnzipFolder {
+param(
+[Parameter (Mandatory = $false)] $Version,
+[Parameter (Mandatory = $false)] [String]$SourceFolder,
+[Parameter (Mandatory = $false)] [String]$AppFolder,
+[Parameter (Mandatory = $false)] [String]$Filter
+)
+    $TargetPath = $AppFolder + 'Modules\' + $Filter + '\'    
+    $FullFilter = '*' + $Filter + '*.Source.zip'    #added prefix filter to cover for _Exclude apps
+    $files = Get-ChildItem $SourceFolder -Filter $FullFilter
+    $files | ForEach-Object -Process {    
+        $filename = $_.BaseName
+        $filename = $filename -replace '.Source',''
+        $TempTargetPath = $TargetPath + $filename
+        $TempSourcePath = $_.FullName
+        Expand-Archive $TempSourcePath -DestinationPath $TempTargetPath -Force
+        $WorkspaceFolder.Add(@{
+            name = $filename
+            path = '.\Modules\'+ $Filter + '\' + $filename
+        }) > $null
+}
+}
 
 Write-Host "Setting up AL development workspace"
 Write-Host "Getting BC version from docker container..."
@@ -31,10 +53,11 @@ while ([string]::IsNullOrEmpty($Choice))
         }
     }
 
-''
-'You chose {0}' -f $allcontainers[$Choice - 1]
+Write-Host 'You chose:' $allcontainers[$Choice - 1]
 
 $Version = Get-BcContainerNavVersion -containerOrImageName $allcontainers[$Choice - 1]
+
+Write-Host "BC Version: $Version" -ForegroundColor Green
 
 $AppFolder = 'C:\ProgramData\BcContainerHelper\Extensions\Original-' + $Version + '-al\'
 if (Test-Path -Path $AppFolder) {
@@ -48,44 +71,66 @@ $TargetFile = $AppFolder + 'SystemAppsBaseAndTests.code-workspace'
 
 if (Test-Path -Path $TargetFile) {
     Write-Host "AL Development workspace already configured: $TargetFile"
-    exit
+    do {
+        $WorkspaceOverwrite = Read-Host "`n Overwrite (O) or Exit (E)"    
+    }
+    until (($WorkspaceOverwrite -eq "O") -or ($WorkspaceOverwrite -eq "E"))
+    
+    if ($WorkspaceOverwrite -eq "E"){
+        Write-Host 'Exiting...'
+        exit
+    } else {
+        $WorkspaceConfigsPath = $AppFolder + 'SystemAppsBaseAndTests.code-workspace'
+        Write-Host 'Removing previous workspace setup...'
+        Remove-Item -Path $WorkspaceConfigsPath
+        $ModulesPath = $AppFolder + "\Modules\"
+        Remove-Item -Path $ModulesPath -Recurse
+        Write-Host 'Removing previous workspace setup complete.'
+    }
 }
 
 Copy-Item $SourceFile -Destination $TargetFile
 
-#add folder to JSON file-start
+#Open JSON file to add folder-start
 $WorkspaceConfigsPath = $AppFolder + 'SystemAppsBaseAndTests.code-workspace'
 $WorkspaceFolders = Get-Content $WorkspaceConfigsPath -raw | ConvertFrom-Json
 [System.Collections.ArrayList]$WorkspaceFolder = $WorkspaceFolders.folders
-$WorkspaceFolder.Add(@{
-                        name = "System Application"
-                        path = ".\Modules\System Application"            
-                    }) > $null
+#Open JSON file to add folder-end
+
+#unzip the NZ-specific files
+$Version = $Version.Replace("-NZ", '')
+
+$SourceFolder = 'C:\bcartifacts.cache\sandbox\' + $Version + '\nz\Applications.NZ'
+
+UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter 'System Application'
+
+#unzip platform files - format of source folder is different
+$FilterText = 'APIV1'
+$SourceFolder = 'C:\bcartifacts.cache\sandbox\' + $Version + '\platform\Applications\' + $FilterText + '\Source'
+UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter $FilterText 
+
+$FilterText = 'APIV2'
+$SourceFolder = 'C:\bcartifacts.cache\sandbox\' + $Version + '\platform\Applications\' + $FilterText + '\Source'
+UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter $FilterText 
+
+$FilterText = 'MasterDataManagement'
+$SourceFolder = 'C:\bcartifacts.cache\sandbox\' + $Version + '\platform\Applications\' + $FilterText + '\Source'
+$FilterText = 'Master_Data_Management'
+UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter $FilterText 
+
+
+# finalize JSON file - begin
 $WorkspaceFolders.folders = $WorkspaceFolder;
 
 $WorkspaceFolders | ConvertTo-Json | Set-Content $WorkspaceConfigsPath -NoNewline
-#add folder to JSON file-end
+# finalize JSON file - end
 
-[System.IO.Directory]::CreateDirectory($AppFolder + 'Modules\System Application\')
 
-$Version = $Version.Replace("-NZ", '')
-
-$PlatformFolder = 'C:\bcartifacts.cache\sandbox\'+ $Version + '\platform\Applications\system application\source\'
-$PlatformZip = $PlatformFolder + 'System Application.Source.zip'
-if (Test-Path -Path $PlatformZip) {
-    Write-Host "Platform ZIP File : $PlatformZip"
-} else {
-    Write-Host "Platform ZIP File : $PlatformZip does not exist!"
-    exit
+$DuplicatePath = $AppFolder + "\Foundation\NoSeries"
+if (Test-Path -Path $DuplicatePath) {
+    Remove-Item -Path $DuplicatePath -Recurse
 }
-
-#unzip file from 
-#  C:\bcartifacts.cache\sandbox\xx.x.xxxxx.0\platform\Applications\system application\source\System Application.Source.zip 
-#to 
-#  C:\ProgramData\BcContainerHelper\Extensions\Original-xx.x.xxxxx.0-NZ-al\Modules\System Application\
-$TargetPath = $AppFolder + 'Modules\System Application\'
-Expand-Archive $PlatformZip -DestinationPath $TargetPath -Force
 
 Write-Host "Workspace setup complete!"
 Write-Host "For complete coverage, open System.app package from Prism once, then tick Search Package Cache in Prism control panel before opening workspace"
-Write-Host "Workspace file: $TargetFile"
+Write-Host "Workspace file: $TargetFile" -ForegroundColor Green

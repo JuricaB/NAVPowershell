@@ -113,5 +113,5 @@ New-BcContainer `
     -licenseFile $licenseFile `
     -updateHosts `
     -includeAL `
-    -vsixFile (Get-LatestAlLanguageExtensionUrl) `
-    -includeTestToolkit
+    -includeTestToolkit 
+    #-vsixFile (Get-LatestAlLanguageExtensionUrl)

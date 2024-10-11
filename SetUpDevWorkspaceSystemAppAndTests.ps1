@@ -71,7 +71,22 @@ $TargetFile = $AppFolder + 'SystemAppsBaseAndTests.code-workspace'
 
 if (Test-Path -Path $TargetFile) {
     Write-Host "AL Development workspace already configured: $TargetFile"
-    exit
+    do {
+        $WorkspaceOverwrite = Read-Host "`n Overwrite (O) or Exit (E)"    
+    }
+    until (($WorkspaceOverwrite -eq "O") -or ($WorkspaceOverwrite -eq "E"))
+    
+    if ($WorkspaceOverwrite -eq "E"){
+        Write-Host 'Exiting...'
+        exit
+    } else {
+        $WorkspaceConfigsPath = $AppFolder + 'SystemAppsBaseAndTests.code-workspace'
+        Write-Host 'Removing previous workspace setup...'
+        Remove-Item -Path $WorkspaceConfigsPath
+        $ModulesPath = $AppFolder + "\Modules\"
+        Remove-Item -Path $ModulesPath -Recurse
+        Write-Host 'Removing previous workspace setup complete.'
+    }
 }
 
 Copy-Item $SourceFile -Destination $TargetFile
@@ -97,23 +112,32 @@ UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder 
 $FilterText = 'APIV1'
 $SourceFolder = 'C:\bcartifacts.cache\sandbox\' + $Version + '\platform\Applications\' + $FilterText + '\Source'
 UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter $FilterText 
+
 $FilterText = 'APIV2'
 $SourceFolder = 'C:\bcartifacts.cache\sandbox\' + $Version + '\platform\Applications\' + $FilterText + '\Source'
 UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter $FilterText 
 
 $FilterText = 'MasterDataManagement'
 $SourceFolder = 'C:\bcartifacts.cache\sandbox\' + $Version + '\platform\Applications\' + $FilterText + '\Source'
+$FilterText = 'Master_Data_Management'
 UnzipFolder -Version $Version -SourceFolder $SourceFolder -AppFolder $AppFolder -Filter $FilterText 
+
 
 # finalize JSON file - begin
 $WorkspaceFolders.folders = $WorkspaceFolder;
+
 $WorkspaceFolders | ConvertTo-Json | Set-Content $WorkspaceConfigsPath -NoNewline
 # finalize JSON file - end
 
-$DuplicatePath = "C:\ProgramData\BcContainerHelper\Extensions\Original-21.4.52563.52989-NZ-al\Modules\Test\System Application Test Library\"
+$DuplicatePath = $AppFolder + "\Modules\Test\System Application Test Library\"
 if (Test-Path -Path $DuplicatePath) {
     Remove-Item -Path $DuplicatePath -Recurse
 }
+$DuplicatePath = $AppFolder + "\Modules\Library\System Application Test Library\"
+if (Test-Path -Path $DuplicatePath) {
+    Remove-Item -Path $DuplicatePath -Recurse
+}
+
 Write-Host "Workspace setup complete!"
 Write-Host "For complete coverage, open System.app package from Prism once, then tick Search Package Cache in Prism control panel before opening workspace"
 Write-Host "Workspace file: $TargetFile" -ForegroundColor Green
