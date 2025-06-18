@@ -107,11 +107,11 @@ New-BcContainer `
     -containerName $containerName `
     -credential $credential `
     -auth $auth `
-    -isolation process `
+    -isolation HyperV `
     -imageName $allImages[$Choice - 1] `
     -assignPremiumPlan `
     -licenseFile $licenseFile `
     -updateHosts `
-    -includeAL `
-    -includeTestToolkit 
+    -includeAL #`
+    #-includeTestToolkit 
     #-vsixFile (Get-LatestAlLanguageExtensionUrl)

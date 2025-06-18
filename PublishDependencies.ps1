@@ -1,3 +1,3 @@
-﻿$containername = 'BC245'
-$dependenciesZip = "D:\Dependencies\App Dependencies 1.4.10.10 24.0 - onprem.zip"
+﻿$containername = 'BC255A'
+$dependenciesZip = "D:\Dependencies\App-Dependencies-Theta Systems Limited_25.0.0.0_25.0 - OnPrem.zip"
 Publish-BcContainerApp -containerName $containerName  -appFile $dependenciesZip -skipVerification -install -sync

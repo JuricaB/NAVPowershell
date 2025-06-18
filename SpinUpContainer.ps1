@@ -1,4 +1,5 @@
-﻿#Change country code here if you need different one
+﻿Add-Type -AssemblyName System.Windows.Forms                        
+#Change country code here if you need different one
 $Country = "nz"
 
 # get SourcePath - exit if blank
@@ -88,6 +89,7 @@ else {
         $artifactUrl = Get-BcArtifactUrl -type $ContainerType -country $Country -select $Select -version $Version
     }
 }
+#$artifactUrl = 'https://bcartifacts-exdbf9fwegejdqak.b02.azurefd.net/sandbox/25.3.28755.29171/nz'
 Write-Host 'Artifact URL: ' $artifactUrl
 
 New-BcContainer `
@@ -97,12 +99,12 @@ New-BcContainer `
     -credential $credential `
     -auth $auth `
     -artifactUrl $artifactUrl `
-    -isolation process `
+    -isolation HyperV `
     -imageName 'myimage' `
     -assignPremiumPlan `
     -licenseFile $licenseFile `
     -includeAL `
-    -vsixFile (Get-LatestAlLanguageExtensionUrl) `
     -updateHosts `
     -includeTestToolkit #'
+    #-vsixFile (Get-LatestAlLanguageExtensionUrl) `
     #-includeCSide #only for BC14 or older

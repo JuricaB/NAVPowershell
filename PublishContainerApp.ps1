@@ -1,5 +1,5 @@
 ﻿#CHANGE ME BEFORE RUNNING
-$ServerInstance = "ENA241"
+$ServerInstance = "BC250"
 #CHANGE ME BEFORE RUNNING
 
-Publish-NavContainerApp -appfile "EDITPATH\Theta Systems Limited_Integration Hub_24.0.10.0_signed.app" -skipVerification -containerName $ServerInstance -verbose
+Publish-BCContainerApp -appfile "C:\Users\Jurica.Bogunovic\Downloads\Theta Systems Limited_Integration Hub (PTE)_23.0.10.0.app" -skipVerification -containerName $ServerInstance -verbose
