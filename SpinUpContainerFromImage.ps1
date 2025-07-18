@@ -107,7 +107,6 @@ New-BcContainer `
     -containerName $containerName `
     -credential $credential `
     -auth $auth `
-    -isolation HyperV `
     -imageName $allImages[$Choice - 1] `
     -assignPremiumPlan `
     -licenseFile $licenseFile `
