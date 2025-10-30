@@ -75,7 +75,7 @@ $credential = New-Object pscredential 'admin', $securePassword
 $auth = 'UserPassword'
 if ($Version -eq ""){    
     if ($ContainerSelection -eq "P") {    
-        $artifactUrl = Get-BcArtifactUrl -country $Country -storageAccount 'BCPublicPreview'
+        $artifactUrl = Get-BcArtifactUrl -country $Country -select NextMinor -accept_insiderEula
     }
     else{
         $artifactUrl = Get-BcArtifactUrl -type $ContainerType -country $Country -select $Select    
@@ -83,7 +83,7 @@ if ($Version -eq ""){
 }
 else {
     if ($ContainerSelection -eq "P") {    
-        $artifactUrl = Get-BcArtifactUrl -country $Country -version $Version -storageAccount 'BCPublicPreview'
+        $artifactUrl = Get-BcArtifactUrl -country $Country -version $Version -accept_insiderEula
     }
     else{
         $artifactUrl = Get-BcArtifactUrl -type $ContainerType -country $Country -select $Select -version $Version
@@ -105,6 +105,7 @@ New-BcContainer `
     -licenseFile $licenseFile `
     -includeAL `
     -updateHosts `
-    -includeTestToolkit #'
+    -includeTestToolkit `
+    -accept_insiderEula
     #-vsixFile (Get-LatestAlLanguageExtensionUrl) `
     #-includeCSide #only for BC14 or older
